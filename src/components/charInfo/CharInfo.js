@@ -29,8 +29,6 @@ class CharInfo extends Component {
             this.setState({content: false})
         }
 
-        this.foo.bar = 0
-
     }
 
     onCharLoaded = (char) => {
