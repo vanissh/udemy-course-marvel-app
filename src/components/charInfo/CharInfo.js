@@ -29,6 +29,8 @@ class CharInfo extends Component {
             this.setState({content: false})
         }
 
+        this.foo.bar = 0
+
     }
 
     onCharLoaded = (char) => {
@@ -43,9 +45,14 @@ class CharInfo extends Component {
         this.updateChar()
     }
 
+    //когда в компонент приходит новый пропс, он должен перерендериваться
+    //новое свойство, обновление state, принудительное обновление(позже )
     componentDidUpdate(prevProps){
-        //необходимо сравнить пропсы, чтобы не возник бесконечный цикл
+        //необходимо сравнить пропсы, чтобы не возник бесконечный цикл:
+        //udpateChar => setState => render() => componentDidUpdate => updateChar
         //здесь также можно вызывать setstate
+
+        
         if(this.props.charId !== prevProps.charId)
         this.updateChar(this.props.charId)
     }
@@ -74,18 +81,29 @@ const View = ({char}) => { //здесь нужна деструктуризац�
 
     const {name, description, thumbnail, homepage, wiki, comics, styles} = char
 
+    const limitComics = (list, num) => {
+        return list.length > num ? list.slice(0, num) : list
+    }
+
     let comicsList
-    if(comics){
-        comicsList = comics.map(item => {
+    if(comics.length){
+        comicsList = comics.map((item, i) => {
+
             return (
                 <li className="char__comics-item"
-                    key={item.name}
+                    key={i}
                 >
                     {item.name}
                 </li>
             )
         })
+
+        comicsList = limitComics(comicsList, 10)
+    } else {
+        comicsList = 'No comics found'
     }
+
+
 
     return(
         <>
