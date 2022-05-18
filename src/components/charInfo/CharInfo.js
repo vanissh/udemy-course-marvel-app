@@ -1,5 +1,7 @@
 import './char.scss';
 import { Component } from 'react';
+import PropTypes from 'prop-types';
+
 import MarvelService from '../../services/MarvelService';
 import { Spinner } from '../spinner/Spinner';
 import { ErrorMessage } from '../errorMessage/ErrorMessage';
@@ -128,6 +130,12 @@ const View = ({char}) => { //здесь нужна деструктуризац�
             </ul>
         </>
     )
+}
+
+//можно ли при помощи prop-types устанавливать props по умолчанию
+//да, можно, defaultProps / static
+CharInfo.propTypes = {
+    charId: PropTypes.number
 }
 
 export default CharInfo
