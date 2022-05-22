@@ -7,6 +7,16 @@ import CharInfo from '../charInfo/CharInfo';
 import ErrorBoundary from '../errorBoundary/ErrorBoundary';
 import { Component } from 'react';
 
+//ref
+//измненения в дочернем компоненте без перерендера
+//например, установка фокуса на инпут
+//ref - ссылка на элемент или ком-т в dom дереве, те в уже отрисованном интерфейсе
+
+
+
+//strict mode???
+//разобрать virtual dom
+
 class App extends Component {
 
   state = {

@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import React, { Component } from 'react';
 import '../charInfo/char.scss';
 import PropTypes from 'prop-types';
 
@@ -21,6 +21,8 @@ class CharList extends Component{
     }
 
     service = new MarvelService()
+
+    itemRefs = []
 
     onCharsLoaded = (chars) => {
         //конкатенация строк при помощи spread оператора!!!!!!
@@ -69,16 +71,39 @@ class CharList extends Component{
         }
     }
 
+    //получаем массив всех li элементов
+    //при новом запуске render элементу присваивается ref из старого массива itemRefs 
+    //с установленным классом для нужного элемента по i
+    setRef = elem => {
+        this.itemRefs.push(elem)
+    }
+
+    //присваиваем нужный класс по i
+    focusOnItem = (id) => {
+        this.itemRefs.forEach(item => item.classList.remove('char__item_selected'))
+        this.itemRefs[id].classList.add('char__item_selected')
+    }
     render(){
 
         const {chars, loading, error} = this.state
 
-        const elements = chars.map(item => {
+        const elements = chars.map((item, i) => {
             item.name = cropString(item.name, 28)
             return (
-                <li className="char__item"
+                <li className='char__item'
+                    ref={this.setRef}
+                    tabIndex={0}
                     key={item.id}
-                    onClick={() => this.props.onCharSelected(item.id)}
+                    onClick={() => {
+                       this.props.onCharSelected(item.id)
+                       this.focusOnItem(i)
+                    }}
+                    onKeyUp={(e) => {
+                        if(e.keyCode === 13){
+                            this.props.onCharSelected(item.id)
+                            this.focusOnItem(i)
+                        }
+                    }}
                 >
                     <img src={item.thumbnail} alt={item.name} style={item.styles}/>
                     <div className="char__name">{item.name}</div>
