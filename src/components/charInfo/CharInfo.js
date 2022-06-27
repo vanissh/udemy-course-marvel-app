@@ -1,8 +1,8 @@
 import './char.scss';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 import { Spinner } from '../spinner/Spinner';
 import { ErrorMessage } from '../errorMessage/ErrorMessage';
 import Skeleton from '../skeleton/Skeleton';
@@ -16,17 +16,14 @@ const CharInfo = (props) => {
         content: false
     })
 
-    const service = new MarvelService()
+    const {loading, error, getCharacter, clearError} = useMarvelService()
 
     const updateChar = (charID) => {
+        clearError()
 
         if(charID){
-            setState({...state, loading: true})
-
-            service
-            .getCharacter(charID)
-            .then(onCharLoaded) //аргумент автоматически подставляется в метод
-            .catch(onError)
+            getCharacter(charID)
+            .then(onCharLoaded) //аргумент автоматически подставляется в мето
         } else {
             setState({...state, content: false})
         }
@@ -34,11 +31,7 @@ const CharInfo = (props) => {
     }
 
     const onCharLoaded = (char) => {
-        setState({...state, char, loading: false, error: false, content: true})
-    }
-
-    const onError = () => {
-        setState({...state, error: true, loading: false})
+        setState({...state, char, content: true})
     }
 
     useEffect(() => {
@@ -55,13 +48,10 @@ const CharInfo = (props) => {
         updateChar(props.charId)
     }, [props.charId])
 
-
-    const {loading, char, error, content} = state
-
     const spinner = loading ? <Spinner/> : null
-    const skeleton = content ? null : <Skeleton/>
+    const skeleton = state.content ? null : <Skeleton/>
     const errorMessage = error ? <ErrorMessage/> : null
-    const view = char ? <View char={char}/> : null
+    const view = state.char ? <View char={state.char}/> : null
 
     return (
         <div className="char__info">

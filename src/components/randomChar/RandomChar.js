@@ -3,37 +3,30 @@ import './randomChar.scss'
 
 import { Spinner } from '../spinner/Spinner'
 import { ErrorMessage } from '../errorMessage/ErrorMessage'
-import MarvelService from '../../services/MarvelService'
+import useMarvelService from '../../services/MarvelService'
 import mjolnir from '../../resources/img/mjolnir.png'
 import { cropString } from '../../auxillary/cropString'
 
 const RandomChar = () => {
 
     const [state, setState] = useState({
-        char: {},
-        loading: true,
-        error: false
+        char: {}
     })
     
-    const service = new MarvelService()
+    const {loading, error, getCharacter, clearError} = useMarvelService()
 
     const updateChar = () => {
-        setState({...state, loading: true})
 
+        clearError()
+        
         const id = Math.floor(Math.random() * (1011400 - 1011000) + 1011000)
-        service
-            .getCharacter(id)
+            getCharacter(id)
             .then(onCharLoaded) //аргумент автоматически подставляется в метод
-            .catch(onError)
     }
 
     const onCharLoaded = (char) => {
         char.description = setCharMessage(char.description)
-        setState({...state, char, loading: false, error: false})
-    }
-
-    const onError = () => {
-        setState({...state, error: true, loading: false})
+        setState({...state, char})
     }
 
     useEffect(() => {
@@ -50,12 +43,10 @@ const RandomChar = () => {
         return cropString(description, 140)
     }
 
-    const {loading, char, error} = state
-
     return (
         <div className="randomchar">
             {error ? <ErrorMessage/> : 
-            loading? <Spinner/> : <View char={char}/>}
+            loading? <Spinner/> : <View char={state.char}/>}
             <div className="randomchar__static">
                 <p className="randomchar__title">
                     Random character for today!<br/>

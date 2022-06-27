@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import '../charInfo/char.scss';
 import PropTypes from 'prop-types';
 
-import MarvelService from '../../services/MarvelService';
+import useMarvelService from '../../services/MarvelService';
 import { Spinner } from '../spinner/Spinner';
 import { cropString } from '../../auxillary/cropString';
 import { ErrorMessage } from '../errorMessage/ErrorMessage';
@@ -12,8 +12,6 @@ const CharList = (props) => {
 
     const [state, setState] = useState({
         chars: [],
-        loading: true,
-        error: false,
         presentOffset: 0,
         maxChar: 50,
         disableBtn: false,
@@ -26,7 +24,7 @@ const CharList = (props) => {
         prevState.current = state //запоминаем предыдущее состояние
     })
 
-    const service = new MarvelService()
+    const {loading, error, getAllCharacters} = useMarvelService()
 
     //Рефы дают возможность получить доступ к 
     //DOM-узлам или React-элементам, созданным в рендер-методе.
@@ -38,20 +36,14 @@ const CharList = (props) => {
 
     const itemRefs = []
 
-    const onError = () => {
-        setState({...state, error: true, loading: false})
-    }
-
     const onCharsLoaded = (chars) => {
         //конкатенация строк при помощи spread оператора!!!!!!
-        setState({...state, chars: [...state.chars, ...chars], loading: false})
+        setState({...state, chars: [...state.chars, ...chars]})
     }
 
     const getChars = (limit = 9, offset = 0) => {
-        service
-            .getAllCharacters(limit, offset)
+        getAllCharacters(limit, offset)
             .then(onCharsLoaded)
-            .catch(onError)
     }
 
     const increaseOffsetValue = () => {
@@ -96,9 +88,8 @@ const CharList = (props) => {
         itemRefs[id].classList.add('char__item_selected')
     }
 
-    const {chars, loading, error} = state
 
-    const elements = chars.map((item, i) => {
+    const elements = state.chars.map((item, i) => {
         item.name = cropString(item.name, 28)
         return (
             <li className='char__item'
@@ -126,7 +117,7 @@ const CharList = (props) => {
     return (
         <div className="char__list">
             {error ? <ErrorMessage/> :
-                loading ? <Spinner/> : 
+                loading && state.offset === 0 ? <Spinner/> : 
                     <ul className="char__grid">
                         {elements}
                     </ul>

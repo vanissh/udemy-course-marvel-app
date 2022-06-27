@@ -1,31 +1,23 @@
 import { setImgClass } from '../auxillary/setImgClass'
+import {useHttp} from '../hooks/http.hook'
 
+const useMarvelService = () => {
+    const {loading, request, error, clearError} = useHttp()
 
-class MarvelService {
-    _apiBase = 'https://gateway.marvel.com:443/v1/public'
-    _apiKey = 'apikey=86d887782cbaea671824f62fdd131820'
+    const _apiBase = 'https://gateway.marvel.com:443/v1/public'
+    const _apiKey = 'apikey=86d887782cbaea671824f62fdd131820'
 
-    getResource = async (url) => {
-        let res = await fetch(url)
-
-        if(!res.ok){
-            throw new Error(`Could not fetch ${url}, status: ${res.status}`)
-        }
-
-        return await res.json()
+    const getCharacter = async (id) => {
+        const res = await request(`${_apiBase}/characters/${id}?${_apiKey}`)
+        return _transformChar(res.data.results[0])
     }
 
-    getCharacter = async (id) => {
-        const res = await this.getResource(`${this._apiBase}/characters/${id}?${this._apiKey}`)
-        return this._transformChar(res.data.results[0])
+    const getAllCharacters = async (limit, offset) => {
+        const res = await request(`${_apiBase}/characters?limit=${limit}&offset=${offset}&${_apiKey}`)
+        return res.data.results.map(char => _transformChar(char))
     }
 
-    getAllCharacters = async (limit, offset) => {
-        const res = await this.getResource(`${this._apiBase}/characters?limit=${limit}&offset=${offset}&${this._apiKey}`)
-        return res.data.results.map(char => this._transformChar(char))
-    }
-
-    _transformChar = ({name, id, description, thumbnail, urls, comics}) => {
+    const _transformChar = ({name, id, description, thumbnail, urls, comics}) => {
 
         const thumbNail = thumbnail.path + '.' + thumbnail.extension,
             styles = setImgClass(thumbNail)
@@ -41,6 +33,8 @@ class MarvelService {
             styles,
         }
     }
+
+    return {loading, error, getAllCharacters, getCharacter, clearError}
 }
 
-export default MarvelService
+export default useMarvelService
