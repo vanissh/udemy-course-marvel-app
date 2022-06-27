@@ -6,6 +6,7 @@ import CharList from '../charList/CharList';
 import CharInfo from '../charInfo/CharInfo';
 import ErrorBoundary from '../errorBoundary/ErrorBoundary';
 import { useState } from 'react';
+import ComicsList from '../comicsList/ComicsList';
 
 //ref
 //измненения в дочернем компоненте без перерендера
@@ -39,6 +40,9 @@ const App = () => {
             <CharInfo charId={selectedID}/>
           </ErrorBoundary>
         </div>
+          <ErrorBoundary>
+            <ComicsList/>
+          </ErrorBoundary>
         <img className="bg-decoration" src={vision} alt="vision"></img>
       </main>
     </div>

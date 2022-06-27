@@ -1,26 +1,70 @@
 import './comics.scss'
+import { useState, useEffect } from 'react'
+import useMarvelService from '../../services/MarvelService'
+import { useOffset } from '../../hooks/offset.hook'
+import { Spinner } from '../spinner/Spinner'
+import { ErrorMessage } from '../errorMessage/ErrorMessage'
 
 const ComicsList = () => {
+
+    const {increaseOffsetValue, limit, offset, disableBtn} = useOffset({
+        presentOffset: 0,
+        maxChar: 30,
+        disableBtn: false,
+        limit: 8
+    })
+
+    const [comics, setComics] = useState([])
+
+    const {loading, error, getAllComics} = useMarvelService()
+
+    const onComicsLoaded = (newComics) => {
+        //конкатенация строк при помощи spread оператора!!!!!!
+        setComics([...comics, ...newComics])
+        console.log(newComics)
+    }
+
+    const getComics = (limit = 8, offset = 0) => {
+        getAllComics(limit, offset)
+            .then(onComicsLoaded)
+    }
+
+    useEffect(() => {
+        getComics()
+    }, [])
+
+    useEffect(() => {
+        getComics(limit, offset)
+    }, [limit, offset])
+
+    const onStyleBtn = () => {
+        return !disableBtn ? null : {display: 'none'}
+    }
+
+    const elements = comics.map((comic, i) => {
+        return (
+            <li className="comics__item"
+                key={i}>
+                    <a href="../">
+                        <img src={comic.thumbnail} alt="ultimate war" className="comics__item-img"/>
+                        <div className="comics__item-name">{comic.title}</div>
+                        <div className="comics__item-price">{comic.price}$</div>
+                    </a>
+            </li>
+        )
+    })
+
     return(
         <div className="comics__list">
-            <ul className="comics__grid">
-                <li className="comics__item">
-                    <a href="../">
-                        <img src="img/UW.png" alt="ultimate war" className="comics__item-img"/>
-                        <div className="comics__item-name">ULTIMATE X-MEN VOL. 5: ULTIMATE WAR TPB</div>
-                        <div className="comics__item-price">9.99$</div>
-                    </a>
-                </li>
-                <li className="comics__item">
-                    <a href="../">
-                        <img src="img/x-men.png" alt="x-men" className="comics__item-img"/>
-                        <div className="comics__item-name">X-Men: Days of Future Past</div>
-                        <div className="comics__item-price">NOT AVAILABLE</div>
-                    </a>
-                </li>
-            </ul>
-            {/* ????????? */}
-            <button className="button button__main button__long">
+            {error ? <ErrorMessage/> :
+                loading && offset === 0 ? <Spinner/> : 
+                    <ul className="comics__grid">
+                        {elements}
+                    </ul>
+            }
+            <button className="button button__main button__long"
+                    onClick={increaseOffsetValue}
+                    style={onStyleBtn()}>
                 <div className="inner">load more</div>
             </button>
         </div>

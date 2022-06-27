@@ -6,23 +6,18 @@ import useMarvelService from '../../services/MarvelService';
 import { Spinner } from '../spinner/Spinner';
 import { cropString } from '../../auxillary/cropString';
 import { ErrorMessage } from '../errorMessage/ErrorMessage';
-
+import { useOffset } from '../../hooks/offset.hook';
 
 const CharList = (props) => {
 
-    const [state, setState] = useState({
-        chars: [],
+    const {increaseOffsetValue, limit, offset, disableBtn} = useOffset({
         presentOffset: 0,
         maxChar: 50,
         disableBtn: false,
         limit: 9
     })
 
-    const prevState = useRef(state)
-
-    useEffect(() => {
-        prevState.current = state //запоминаем предыдущее состояние
-    })
+    const [chars, setChars] = useState([])
 
     const {loading, error, getAllCharacters} = useMarvelService()
 
@@ -36,9 +31,9 @@ const CharList = (props) => {
 
     const itemRefs = []
 
-    const onCharsLoaded = (chars) => {
+    const onCharsLoaded = (newChars) => {
         //конкатенация строк при помощи spread оператора!!!!!!
-        setState({...state, chars: [...state.chars, ...chars]})
+        setChars([...chars, ...newChars])
     }
 
     const getChars = (limit = 9, offset = 0) => {
@@ -46,25 +41,8 @@ const CharList = (props) => {
             .then(onCharsLoaded)
     }
 
-    const increaseOffsetValue = () => {
-
-        const {presentOffset, maxChar, limit} = state
-
-        if((presentOffset + limit) < maxChar && (maxChar - (presentOffset + limit) >= limit)){
-            setState({...state, presentOffset: state.presentOffset + state.limit})
-        }
-
-        if((presentOffset + limit) < maxChar && (maxChar - (presentOffset + limit) < limit)){
-            setState({...state,
-                presentOffset: state.presentOffset + state.limit, 
-                limit: (state.maxChar - (state.presentOffset + state.limit)),
-                disableBtn: true
-            })
-        }
-    }
-
     const onStyleBtn = () => {
-        return !state.disableBtn ? null : {display: 'none'}
+        return !disableBtn ? null : {display: 'none'}
     }
 
     useEffect(() => {
@@ -72,8 +50,8 @@ const CharList = (props) => {
     }, [])
 
     useEffect(() => {
-        getChars(state.limit, state.presentOffset)
-    }, [state.limit, state.presentOffset])
+        getChars(limit, offset)
+    }, [limit, offset])
 
     //получаем массив всех li элементов
     //при новом запуске render элементу присваивается ref из старого массива itemRefs 
@@ -89,13 +67,13 @@ const CharList = (props) => {
     }
 
 
-    const elements = state.chars.map((item, i) => {
+    const elements = chars.map((item, i) => {
         item.name = cropString(item.name, 28)
         return (
             <li className='char__item'
                 ref={setRef}
                 tabIndex={0}
-                key={item.id}
+                key={i}
                 onClick={() => {
                     props.onCharSelected(item.id)
                     focusOnItem(i)
@@ -117,7 +95,7 @@ const CharList = (props) => {
     return (
         <div className="char__list">
             {error ? <ErrorMessage/> :
-                loading && state.offset === 0 ? <Spinner/> : 
+                loading && offset === 0 ? <Spinner/> : 
                     <ul className="char__grid">
                         {elements}
                     </ul>
