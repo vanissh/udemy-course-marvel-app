@@ -21,7 +21,6 @@ const ComicsList = () => {
     const onComicsLoaded = (newComics) => {
         //конкатенация строк при помощи spread оператора!!!!!!
         setComics([...comics, ...newComics])
-        console.log(newComics)
     }
 
     const getComics = (limit = 8, offset = 0) => {

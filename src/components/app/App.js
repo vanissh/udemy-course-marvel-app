@@ -1,12 +1,8 @@
 import './app.scss';
-import vision from '../../resources/img/vision.png';
+import { Routes, Route } from "react-router-dom";
 import AppHeader from '../appHeader/AppHeader';
-import RandomChar from '../randomChar/RandomChar';
-import CharList from '../charList/CharList';
-import CharInfo from '../charInfo/CharInfo';
-import ErrorBoundary from '../errorBoundary/ErrorBoundary';
-import { useState } from 'react';
-import ComicsList from '../comicsList/ComicsList';
+import { MainPage } from '../pages/MainPage';
+import { ComicsPage } from '../pages/ComicsPage';
 
 //ref
 //измненения в дочернем компоненте без перерендера
@@ -18,35 +14,19 @@ import ComicsList from '../comicsList/ComicsList';
 
 //порталы
  
-
 const App = () => {
-
-  const [selectedID, setID] = useState(null)
-
-  const onCharSelected = (id) => setID(id)
-
   return (
     <div className="app">        
       <AppHeader/>
       <main>
-        <ErrorBoundary>
-          <RandomChar/>
-        </ErrorBoundary>
-        <div className="char__content">
-          <ErrorBoundary>
-            <CharList onCharSelected={onCharSelected}/>
-          </ErrorBoundary>
-          <ErrorBoundary>
-            <CharInfo charId={selectedID}/>
-          </ErrorBoundary>
-        </div>
-          <ErrorBoundary>
-            <ComicsList/>
-          </ErrorBoundary>
-        <img className="bg-decoration" src={vision} alt="vision"></img>
+        <Routes>
+          <Route path='/' element={<MainPage/>}/>
+          <Route path='comics' element={<ComicsPage/>}/>
+        </Routes>
       </main>
     </div>
   )
 }
 
 export default App;
+
