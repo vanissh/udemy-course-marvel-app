@@ -1,5 +1,5 @@
 import './char.scss';
-import { Component } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 
 import MarvelService from '../../services/MarvelService';
@@ -7,74 +7,70 @@ import { Spinner } from '../spinner/Spinner';
 import { ErrorMessage } from '../errorMessage/ErrorMessage';
 import Skeleton from '../skeleton/Skeleton';
 
-class CharInfo extends Component {
+const CharInfo = (props) => {
 
-    state = {
+    const [state, setState] = useState({
         char: null,
         loading: false,
         error: false,
         content: false
-    }
+    })
 
-    service = new MarvelService()
+    const service = new MarvelService()
 
-    updateChar = (charID) => {
+    const updateChar = (charID) => {
 
         if(charID){
-            this.setState({loading: true})
+            setState({...state, loading: true})
 
-            this.service
+            service
             .getCharacter(charID)
-            .then(this.onCharLoaded) //аргумент автоматически подставляется в метод
-            .catch(this.onError)
+            .then(onCharLoaded) //аргумент автоматически подставляется в метод
+            .catch(onError)
         } else {
-            this.setState({content: false})
+            setState({...state, content: false})
         }
 
     }
 
-    onCharLoaded = (char) => {
-        this.setState({char, loading: false, error: false, content: true})
+    const onCharLoaded = (char) => {
+        setState({...state, char, loading: false, error: false, content: true})
     }
 
-    onError = () => {
-        this.setState({error: true, loading: false})
+    const onError = () => {
+        setState({...state, error: true, loading: false})
     }
 
-    componentDidMount(){
-        this.updateChar()
-    }
+    useEffect(() => {
+        updateChar()
+    }, [])
 
     //когда в компонент приходит новый пропс, он должен перерендериваться
     //новое свойство, обновление state, принудительное обновление(позже )
-    componentDidUpdate(prevProps){
+    useEffect(() => {
         //необходимо сравнить пропсы, чтобы не возник бесконечный цикл:
         //udpateChar => setState => render() => componentDidUpdate => updateChar
         //здесь также можно вызывать setstate
-
         
-        if(this.props.charId !== prevProps.charId)
-        this.updateChar(this.props.charId)
-    }
+        updateChar(props.charId)
+    }, [props.charId])
 
-    render(){
 
-        const {loading, char, error, content} = this.state
+    const {loading, char, error, content} = state
 
-        const spinner = loading ? <Spinner/> : null
-        const skeleton = content ? null : <Skeleton/>
-        const errorMessage = error ? <ErrorMessage/> : null
-        const view = char ? <View char={char}/> : null
+    const spinner = loading ? <Spinner/> : null
+    const skeleton = content ? null : <Skeleton/>
+    const errorMessage = error ? <ErrorMessage/> : null
+    const view = char ? <View char={char}/> : null
 
-        return (
-            <div className="char__info">
-                {spinner}
-                {loading ? null : skeleton}
-                {loading ? null : errorMessage}
-                {loading ? null : view}
-            </div>
-        )
-    }
+    return (
+        <div className="char__info">
+            {spinner}
+            {loading ? null : skeleton}
+            {loading ? null : errorMessage}
+            {loading ? null : view}
+        </div>
+    )
 }
 
 const View = ({char}) => { //здесь нужна деструктуризация, т.к приходит объект props
@@ -102,8 +98,6 @@ const View = ({char}) => { //здесь нужна деструктуризац�
     } else {
         comicsList = 'No comics found'
     }
-
-
 
     return(
         <>

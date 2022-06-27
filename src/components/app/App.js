@@ -5,49 +5,44 @@ import RandomChar from '../randomChar/RandomChar';
 import CharList from '../charList/CharList';
 import CharInfo from '../charInfo/CharInfo';
 import ErrorBoundary from '../errorBoundary/ErrorBoundary';
-import { Component } from 'react';
+import { useState } from 'react';
 
 //ref
 //измненения в дочернем компоненте без перерендера
 //например, установка фокуса на инпут
 //ref - ссылка на элемент или ком-т в dom дереве, те в уже отрисованном интерфейсе
 
-
-
 //strict mode???
 //разобрать virtual dom
 
-class App extends Component {
+//порталы
+ 
 
-  state = {
-    selectedID: null
-  }
+const App = () => {
 
-  onCharSelected = (id) => {
-    this.setState({selectedID: id})
-  }
+  const [selectedID, setID] = useState(null)
 
-  render(){
-    return (
-      <div className="app">        
-        <AppHeader/>
-        <main>
+  const onCharSelected = (id) => setID(id)
+
+  return (
+    <div className="app">        
+      <AppHeader/>
+      <main>
+        <ErrorBoundary>
+          <RandomChar/>
+        </ErrorBoundary>
+        <div className="char__content">
           <ErrorBoundary>
-            <RandomChar/>
+            <CharList onCharSelected={onCharSelected}/>
           </ErrorBoundary>
-          <div className="char__content">
-            <ErrorBoundary>
-              <CharList onCharSelected={this.onCharSelected}/>
-            </ErrorBoundary>
-            <ErrorBoundary>
-              <CharInfo charId={this.state.selectedID}/>
-            </ErrorBoundary>
-          </div>
-          <img className="bg-decoration" src={vision} alt="vision"></img>
-        </main>
-      </div>
-    )
-  }
+          <ErrorBoundary>
+            <CharInfo charId={selectedID}/>
+          </ErrorBoundary>
+        </div>
+        <img className="bg-decoration" src={vision} alt="vision"></img>
+      </main>
+    </div>
+  )
 }
 
 export default App;

@@ -1,4 +1,4 @@
-import { Component } from 'react'
+import { useState, useEffect } from 'react'
 import './randomChar.scss'
 
 import { Spinner } from '../spinner/Spinner'
@@ -7,39 +7,40 @@ import MarvelService from '../../services/MarvelService'
 import mjolnir from '../../resources/img/mjolnir.png'
 import { cropString } from '../../auxillary/cropString'
 
-class RandomChar extends Component {
-    state = {
+const RandomChar = () => {
+
+    const [state, setState] = useState({
         char: {},
         loading: true,
         error: false
-    }
+    })
     
-    service = new MarvelService()
+    const service = new MarvelService()
 
-    updateChar = () => {
-        this.setState({loading: true})
+    const updateChar = () => {
+        setState({...state, loading: true})
 
         const id = Math.floor(Math.random() * (1011400 - 1011000) + 1011000)
-        this.service
+        service
             .getCharacter(id)
-            .then(this.onCharLoaded) //аргумент автоматически подставляется в метод
-            .catch(this.onError)
+            .then(onCharLoaded) //аргумент автоматически подставляется в метод
+            .catch(onError)
     }
 
-    onCharLoaded = (char) => {
-        char.description = this.setCharMessage(char.description)
-        this.setState({char, loading: false, error: false})
+    const onCharLoaded = (char) => {
+        char.description = setCharMessage(char.description)
+        setState({...state, char, loading: false, error: false})
     }
 
-    onError = () => {
-        this.setState({error: true, loading: false})
+    const onError = () => {
+        setState({...state, error: true, loading: false})
     }
 
-    componentDidMount(){
-        this.updateChar()
-    }
+    useEffect(() => {
+        updateChar()
+    }, [])
 
-    setCharMessage = (description) => {
+    const setCharMessage = (description) => {
         const absenceMes = 'No information about this character'
 
         if(!description.length) {
@@ -49,32 +50,30 @@ class RandomChar extends Component {
         return cropString(description, 140)
     }
 
-    render(){
-        const {loading, char, error} = this.state
+    const {loading, char, error} = state
 
-        return (
-            <div className="randomchar">
-                {error ? <ErrorMessage/> : 
-                loading? <Spinner/> : <View char={char}/>}
-                <div className="randomchar__static">
-                    <p className="randomchar__title">
-                        Random character for today!<br/>
-                        Do you want to get to know him better?
-                    </p>
-                    <p className="randomchar__title">
-                        Or choose another one
-                    </p>
-                    <button 
-                        className="button button__main"
-                        onClick={this.updateChar}
-                        >
-                        <div className="inner">try it</div>
-                    </button>
-                    <img src={mjolnir} alt="mjolnir" className="randomchar__decoration"/>
-                </div>
+    return (
+        <div className="randomchar">
+            {error ? <ErrorMessage/> : 
+            loading? <Spinner/> : <View char={char}/>}
+            <div className="randomchar__static">
+                <p className="randomchar__title">
+                    Random character for today!<br/>
+                    Do you want to get to know him better?
+                </p>
+                <p className="randomchar__title">
+                    Or choose another one
+                </p>
+                <button 
+                    className="button button__main"
+                    onClick={updateChar}
+                    >
+                    <div className="inner">try it</div>
+                </button>
+                <img src={mjolnir} alt="mjolnir" className="randomchar__decoration"/>
             </div>
-        )
-    }
+        </div>
+    )
 }
 
 const View = ({char}) => {

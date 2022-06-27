@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import '../charInfo/char.scss';
 import PropTypes from 'prop-types';
 
@@ -8,9 +8,9 @@ import { cropString } from '../../auxillary/cropString';
 import { ErrorMessage } from '../errorMessage/ErrorMessage';
 
 
-class CharList extends Component{
+const CharList = (props) => {
 
-    state = {
+    const [state, setState] = useState({
         chars: [],
         loading: true,
         error: false,
@@ -18,118 +18,133 @@ class CharList extends Component{
         maxChar: 50,
         disableBtn: false,
         limit: 9
+    })
+
+    const prevState = useRef(state)
+
+    useEffect(() => {
+        prevState.current = state //запоминаем предыдущее состояние
+    })
+
+    const service = new MarvelService()
+
+    //Рефы дают возможность получить доступ к 
+    //DOM-узлам или React-элементам, созданным в рендер-методе.
+    // Ситуации, в которых использование рефов является оправданным:
+
+    // Управление фокусом, выделение текста или воспроизведение медиа.
+    // Императивный вызов анимаций.
+    // Интеграция со сторонними DOM-библиотеками.
+
+    const itemRefs = []
+
+    const onError = () => {
+        setState({...state, error: true, loading: false})
     }
 
-    service = new MarvelService()
-
-    itemRefs = []
-
-    onCharsLoaded = (chars) => {
+    const onCharsLoaded = (chars) => {
         //конкатенация строк при помощи spread оператора!!!!!!
-        this.setState({chars: [...this.state.chars, ...chars], loading: false})
+        setState({...state, chars: [...state.chars, ...chars], loading: false})
     }
 
-    getChars = () => {
-        this.service
-            .getAllCharacters(this.state.limit, this.state.presentOffset)
-            .then(this.onCharsLoaded)
-            .catch(this.onError)
+    const getChars = (limit = 9, offset = 0) => {
+        service
+            .getAllCharacters(limit, offset)
+            .then(onCharsLoaded)
+            .catch(onError)
     }
 
-    increaseOffsetValue = () => {
+    const increaseOffsetValue = () => {
 
-        const {presentOffset, maxChar, limit} = this.state
+        const {presentOffset, maxChar, limit} = state
 
         if((presentOffset + limit) < maxChar && (maxChar - (presentOffset + limit) >= limit)){
-            this.setState({presentOffset: presentOffset + limit})
+            setState({...state, presentOffset: state.presentOffset + state.limit})
         }
 
         if((presentOffset + limit) < maxChar && (maxChar - (presentOffset + limit) < limit)){
-            this.setState({
-                presentOffset: presentOffset + limit, 
-                limit: (maxChar - (presentOffset + limit)),
+            setState({...state,
+                presentOffset: state.presentOffset + state.limit, 
+                limit: (state.maxChar - (state.presentOffset + state.limit)),
                 disableBtn: true
             })
         }
     }
 
-    onStyleBtn = () => {
-        return !this.state.disableBtn ? null : {display: 'none'}
+    const onStyleBtn = () => {
+        return !state.disableBtn ? null : {display: 'none'}
     }
 
-    onError = () => {
-        this.setState({error: true, loading: false})
-    }
+    useEffect(() => {
+        getChars()
+    }, [])
 
-    componentDidMount(){
-        this.getChars()
-    }
-
-    componentDidUpdate(_, prevState){
-        if(this.state.presentOffset !== prevState.presentOffset){
-            this.getChars()
-        }
-    }
+    useEffect(() => {
+        getChars(state.limit, state.presentOffset)
+    }, [state.limit, state.presentOffset])
 
     //получаем массив всех li элементов
     //при новом запуске render элементу присваивается ref из старого массива itemRefs 
     //с установленным классом для нужного элемента по i
-    setRef = elem => {
-        this.itemRefs.push(elem)
+    const setRef = elem => {
+        itemRefs.push(elem)
     }
 
     //присваиваем нужный класс по i
-    focusOnItem = (id) => {
-        this.itemRefs.forEach(item => item.classList.remove('char__item_selected'))
-        this.itemRefs[id].classList.add('char__item_selected')
+    const focusOnItem = (id) => {
+        itemRefs.forEach(item => item.classList.remove('char__item_selected'))
+        itemRefs[id].classList.add('char__item_selected')
     }
-    render(){
 
-        const {chars, loading, error} = this.state
+    const {chars, loading, error} = state
 
-        const elements = chars.map((item, i) => {
-            item.name = cropString(item.name, 28)
-            return (
-                <li className='char__item'
-                    ref={this.setRef}
-                    tabIndex={0}
-                    key={item.id}
-                    onClick={() => {
-                       this.props.onCharSelected(item.id)
-                       this.focusOnItem(i)
-                    }}
-                    onKeyUp={(e) => {
-                        if(e.keyCode === 13){
-                            this.props.onCharSelected(item.id)
-                            this.focusOnItem(i)
-                        }
-                    }}
-                >
-                    <img src={item.thumbnail} alt={item.name} style={item.styles}/>
-                    <div className="char__name">{item.name}</div>
-                </li>
-            )
-        })
-
-        //показать нужный компонент при ошибке
+    const elements = chars.map((item, i) => {
+        item.name = cropString(item.name, 28)
         return (
-            <div className="char__list">
-                {error ? <ErrorMessage/> :
-                    loading ? <Spinner/> : 
-                        <ul className="char__grid">
-                            {elements}
-                        </ul>
-                }
-                <button className="button button__main button__long"
-                        onClick={this.increaseOffsetValue}
-                        style={this.onStyleBtn()}
-                >
-                    <div className="inner">load more</div>
-                </button>
-            </div>
+            <li className='char__item'
+                ref={setRef}
+                tabIndex={0}
+                key={item.id}
+                onClick={() => {
+                    props.onCharSelected(item.id)
+                    focusOnItem(i)
+                }}
+                onKeyUp={(e) => {
+                    if(e.keyCode === 13){
+                        props.onCharSelected(item.id)
+                        focusOnItem(i)
+                    }
+                }}
+            >
+                <img src={item.thumbnail} alt={item.name} style={item.styles}/>
+                <div className="char__name">{item.name}</div>
+            </li>
         )
-    }
+    })
+
+    //показать нужный компонент при ошибке
+    return (
+        <div className="char__list">
+            {error ? <ErrorMessage/> :
+                loading ? <Spinner/> : 
+                    <ul className="char__grid">
+                        {elements}
+                    </ul>
+            }
+            <button className="button button__main button__long"
+                    onClick={increaseOffsetValue}
+                    style={onStyleBtn()}
+            >
+                <div className="inner">load more</div>
+            </button>
+        </div>
+    )
 }
+
+//propTypes. Это способ, позволяющий производить валидацию данных, 
+// передаваемых в React компонент, чтобы избегать ошибок, 
+// связанных с несоответствием типов данных. 
+// propTypes присваивается как статичное свойство компонента.
 
 CharList.propTypes = {
     onCharSelected: PropTypes.func.isRequired
